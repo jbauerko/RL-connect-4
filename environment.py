@@ -1,19 +1,10 @@
 import numpy as np
-import tensorflow as tf
 from tf_agents.environments import py_environment
-from tf_agents.environments import tf_py_environment
-from tf_agents.networks import q_network
-from tf_agents.agents.dqn import dqn_agent
-from tf_agents.drivers import dynamic_step_driver
-from tf_agents.replay_buffers import tf_uniform_replay_buffer
-from tf_agents.metrics import tf_metrics
-from tf_agents.policies import random_tf_policy
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step as ts
-from tf_agents.utils import common
 
 class Connect4Environment(py_environment.PyEnvironment):
-    
+
     def __init__(self):
         self._rows = 6
         self._cols = 7
@@ -41,10 +32,11 @@ class Connect4Environment(py_environment.PyEnvironment):
         return self._observation_spec
     
     def _get_valid_actions_mask(self):
+        """Returns a boolean array of valid moves (columns to place in)"""
         return np.array([self._board[0, col] == 0 for col in range(self._cols)], dtype=np.bool_)
     
     def _get_observation(self):
-        action_mask = self._get_valid_action_mask()
+        action_mask = self._get_valid_actions_mask()
         return {
             'board': self._board.copy(),
             'action_mask': action_mask
@@ -75,16 +67,17 @@ class Connect4Environment(py_environment.PyEnvironment):
                 self._board[row, action] = self._current_player
                 break
         
-        # Check for win or draw
+        # Check for win and return timestep
         if self._check_win(self._current_player):
             self._episode_ended = True
             return ts.termination(self._get_observation(), 10.0)
         
+        # Check for win and return timestep
         if np.all(self._board != 0):
             self._episode_ended = True
             return ts.termination(self._get_observation(), 0.0)
         
-        # Opponent move (same logic as before)
+        # Opponent move (currently just a random action)
         self._current_player = -self._current_player
         opponent_action = self._get_random_valid_action()
         if opponent_action is not None:
@@ -104,14 +97,20 @@ class Connect4Environment(py_environment.PyEnvironment):
         self._current_player = -self._current_player
         return ts.transition(self._get_observation(), 0.1)
     
+    def _get_random_valid_action(self):
+        """Get a random valid action for the opponent"""
+        valid_actions = [col for col in range(self._cols) if self._board[0, col] == 0]
+        if valid_actions:
+            return np.random.choice(valid_actions)
+        return None
+    
     def _check_win(self, player):
-
         # Check horizontal
         for row in range(self._rows):
             for col in range(self._cols - 3):
                 if all(self._board[row, col + i] == player for i in range(4)):
                     return True
-        
+                
         # Check vertical
         for row in range(self._rows - 3):
             for col in range(self._cols):
@@ -131,10 +130,3 @@ class Connect4Environment(py_environment.PyEnvironment):
                     return True
         
         return False
-    
-    def _get_random_valid_action(self):
-        """Get a random valid action for the opponent."""
-        valid_actions = [col for col in range(self._cols) if self._board[0, col] == 0]
-        if valid_actions:
-            return np.random.choice(valid_actions)
-        return None
