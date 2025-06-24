@@ -27,7 +27,7 @@ def mse_loss(y_true, y_pred):
     """Mean squared error loss function"""
     return tf.keras.backend.mean(tf.keras.backend.square(y_true - y_pred))
 
-class SimpleConnect4Agent:
+class Connect4Agent:
     def __init__(self, environment, learning_rate=0.001, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01):
         """
         Initialize the Connect4 DQN Agent
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     
     # Create environment and agent
     env = SimpleConnect4Environment()
-    agent = SimpleConnect4Agent(env)
+    agent = Connect4Agent(env)
     
     # Train the agent
     print("Starting training...")

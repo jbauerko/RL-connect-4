@@ -4,7 +4,7 @@ import numpy as np
 import os
 import tensorflow as tf
 from environment import SimpleConnect4Environment
-from agent import SimpleConnect4Agent
+from agent import Connect4Agent
 
 class Connect4GUI:
     def __init__(self, root):
@@ -268,7 +268,7 @@ class Connect4GUI:
         
         try:
             # Create and train agent
-            self.agent = SimpleConnect4Agent(self.env)
+            self.agent = Connect4Agent(self.env)
             self.agent.train(episodes=episodes)
             
             # Save the trained model
@@ -297,7 +297,7 @@ class Connect4GUI:
         
         try:
             # Create agent and load model
-            self.agent = SimpleConnect4Agent(self.env)
+            self.agent = Connect4Agent(self.env)
             
             # Import the custom loss function
             from agent import mse_loss, ActionMaskLayer

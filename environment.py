@@ -75,11 +75,9 @@ class SimpleConnect4Environment:
         return TimeStep(self._get_observation(), 0.1, False)
     
     def _get_valid_actions_mask(self):
-        """Returns a boolean array of valid moves (columns to place in)"""
         return np.array([self._board[0, col] == 0 for col in range(self._cols)], dtype=np.bool_)
     
     def _get_observation(self):
-        """Get the current observation"""
         action_mask = self._get_valid_actions_mask()
         return {
             'board': self._board.copy(),
@@ -87,14 +85,12 @@ class SimpleConnect4Environment:
         }
     
     def _get_random_valid_action(self):
-        """Get a random valid action for the opponent"""
         valid_actions = [col for col in range(self._cols) if self._board[0, col] == 0]
         if valid_actions:
             return np.random.choice(valid_actions)
         return None
     
     def _check_win(self, player):
-        """Check if the given player has won"""
         # Check horizontal
         for row in range(self._rows):
             for col in range(self._cols - 3):
@@ -122,7 +118,6 @@ class SimpleConnect4Environment:
         return False
     
     def render(self):
-        """Render the current board state"""
         print("\n" + "="*29)
         for row in range(6):
             print("|", end=" ")
