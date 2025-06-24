@@ -3,27 +3,26 @@ from collections import namedtuple
 import tensorflow as tf
 from tensorflow import keras
 
-# Simple time step structure
+# Custom time step structure
 TimeStep = namedtuple('TimeStep', ['observation', 'reward', 'is_last'])
 
 class SimpleConnect4Environment:
-    def __init__(self):
+    def __init__(self, auto_opponent=True):
         self._rows = 6
         self._cols = 7
         self._num_actions = 7
         self._board = np.zeros((self._rows, self._cols), dtype=np.int32)
-        self._current_player = 1
+        self._current_player = 1 # 1 for player, -1 for opponent
         self._episode_ended = False
+        self._auto_opponent = auto_opponent  # Whether to automatically make opponent moves
         
     def reset(self):
-        """Reset the environment to initial state"""
         self._board = np.zeros((self._rows, self._cols), dtype=np.int32)
         self._current_player = 1
         self._episode_ended = False
         return self._get_observation()
     
     def step(self, action):
-        """Take a step in the environment"""
         if self._episode_ended:
             return self.reset()
         
@@ -52,24 +51,27 @@ class SimpleConnect4Environment:
             self._episode_ended = True
             return TimeStep(self._get_observation(), 0.0, True)
         
-        # Opponent move (random)
-        self._current_player = -self._current_player
-        opponent_action = self._get_random_valid_action()
-        if opponent_action is not None:
-            for row in range(self._rows - 1, -1, -1):
-                if self._board[row, opponent_action] == 0:
-                    self._board[row, opponent_action] = self._current_player
-                    break
+        # Only make opponent move if auto_opponent is True
+        if self._auto_opponent:
+            # Opponent move (random)
+            self._current_player = -self._current_player
+            opponent_action = self._get_random_valid_action()
+            if opponent_action is not None:
+                for row in range(self._rows - 1, -1, -1):
+                    if self._board[row, opponent_action] == 0:
+                        self._board[row, opponent_action] = self._current_player
+                        break
+                
+                if self._check_win(self._current_player):
+                    self._episode_ended = True
+                    return TimeStep(self._get_observation(), -10.0, True)
+                
+                if np.all(self._board != 0):
+                    self._episode_ended = True
+                    return TimeStep(self._get_observation(), 0.0, True)
             
-            if self._check_win(self._current_player):
-                self._episode_ended = True
-                return TimeStep(self._get_observation(), -10.0, True)
-            
-            if np.all(self._board != 0):
-                self._episode_ended = True
-                return TimeStep(self._get_observation(), 0.0, True)
+            self._current_player = -self._current_player
         
-        self._current_player = -self._current_player
         return TimeStep(self._get_observation(), 0.1, False)
     
     def _get_valid_actions_mask(self):
@@ -77,7 +79,7 @@ class SimpleConnect4Environment:
         return np.array([self._board[0, col] == 0 for col in range(self._cols)], dtype=np.bool_)
     
     def _get_observation(self):
-        """Get current observation"""
+        """Get the current observation"""
         action_mask = self._get_valid_actions_mask()
         return {
             'board': self._board.copy(),
@@ -157,7 +159,6 @@ class SimpleConnect4Environment:
 
 
 if __name__ == "__main__":
-    # Test the environment
     env = SimpleConnect4Environment()
     
     # Play a few random moves

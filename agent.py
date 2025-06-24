@@ -6,6 +6,7 @@ import random
 from collections import deque
 import os
 import time
+from environment import SimpleConnect4Environment
 
 class ActionMaskLayer(keras.layers.Layer):
     """Custom layer to apply action mask to Q-values"""
@@ -356,7 +357,7 @@ class SimpleConnect4Agent:
 
 if __name__ == "__main__":
     # Example usage
-    from simple_environment import SimpleConnect4Environment
+    from environment import SimpleConnect4Environment
     
     # Create environment and agent
     env = SimpleConnect4Environment()
