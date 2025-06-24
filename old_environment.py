@@ -32,7 +32,6 @@ class Connect4Environment(py_environment.PyEnvironment):
         return self._observation_spec
     
     def _get_valid_actions_mask(self):
-        """Returns a boolean array of valid moves (columns to place in)"""
         return np.array([self._board[0, col] == 0 for col in range(self._cols)], dtype=np.bool_)
     
     def _get_observation(self):
@@ -98,7 +97,6 @@ class Connect4Environment(py_environment.PyEnvironment):
         return ts.transition(self._get_observation(), 0.1)
     
     def _get_random_valid_action(self):
-        """Get a random valid action for the opponent"""
         valid_actions = [col for col in range(self._cols) if self._board[0, col] == 0]
         if valid_actions:
             return np.random.choice(valid_actions)
