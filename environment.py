@@ -116,23 +116,3 @@ class SimpleConnect4Environment:
                     return True
         
         return False
-
-    def _create_q_network(self):
-        """Create the Q-network that handles the Connect4 observation structure"""
-        board_input = keras.layers.Input(shape=(6, 7), name='board')
-        board_flat = keras.layers.Flatten()(board_input)
-        action_mask_input = keras.layers.Input(shape=(7,), name='action_mask')
-        combined_input = keras.layers.Concatenate()([board_flat, action_mask_input])
-        x = keras.layers.Dense(128, activation='relu')(combined_input)
-        x = keras.layers.Dropout(0.2)(x)
-        x = keras.layers.Dense(64, activation='relu')(x)
-        x = keras.layers.Dropout(0.2)(x)
-        q_values = keras.layers.Dense(7, activation=None)(x)
-        masked_q_values = keras.layers.Lambda(
-            lambda x: tf.where(x[1], x[0], tf.constant(-1e6, dtype=tf.float32)),
-            output_shape=(7,)
-        )([q_values, action_mask_input])
-        return keras.Model(
-            inputs=[board_input, action_mask_input],
-            outputs=masked_q_values
-        )
