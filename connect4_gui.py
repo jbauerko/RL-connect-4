@@ -9,7 +9,7 @@ from agent import SimpleConnect4Agent
 class Connect4GUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Connect4 vs AI Agent")
+        self.root.title("Connect4 vs RL Agent")
         self.root.geometry("800x600")
         
         # Game state
@@ -22,9 +22,12 @@ class Connect4GUI:
         # Colors
         self.colors = {
             'empty': '#FFFFFF',
-            'player': '#FF6B6B',  # Red for human
-            'ai': '#F7DC6F',      # Light yellow for AI
-            'grid': '#2C3E50'     # Dark blue for grid
+            'player': '#FF6B6B', 
+            'ai': '#F7DC6F',
+            'grid': '#2C3E50',
+            'text': '#000000',
+            'card_bg': '#F0F0F0',
+            'accent': '#FFD700'
         }
         
         self.setup_ui()
@@ -36,16 +39,16 @@ class Connect4GUI:
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # Title
-        title_label = ttk.Label(main_frame, text="Connect4 vs AI Agent", 
+        title_label = ttk.Label(main_frame, text="Connect4 vs RL Agent", 
                                font=('Arial', 16, 'bold'))
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20))
         
         # Control panel
-        control_frame = ttk.LabelFrame(main_frame, text="Controls", padding="10")
+        control_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
         control_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 20))
         
         # Training level selection
-        ttk.Label(control_frame, text="AI Training Level:").grid(row=0, column=0, padx=(0, 10))
+        ttk.Label(control_frame, text="Model:").grid(row=0, column=0, padx=(0, 10))
         self.level_var = tk.StringVar(value="beginner")
         level_combo = ttk.Combobox(control_frame, textvariable=self.level_var, 
                                   values=["beginner", "intermediate", "expert"], 
@@ -53,12 +56,12 @@ class Connect4GUI:
         level_combo.grid(row=0, column=1, padx=(0, 10))
         
         # Train button
-        self.train_button = ttk.Button(control_frame, text="Train AI", 
+        self.train_button = ttk.Button(control_frame, text="Train Model", 
                                       command=self.train_agent)
         self.train_button.grid(row=0, column=2, padx=(0, 10))
         
         # Load button
-        self.load_button = ttk.Button(control_frame, text="Load Trained AI", 
+        self.load_button = ttk.Button(control_frame, text="Load Model", 
                                      command=self.load_agent)
         self.load_button.grid(row=0, column=3, padx=(0, 10))
         
@@ -78,25 +81,6 @@ class Connect4GUI:
         
         # Create the game board
         self.create_board(board_frame)
-        
-        # Game info frame
-        info_frame = ttk.LabelFrame(main_frame, text="Game Info", padding="10")
-        info_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E))
-        
-        # Turn indicator
-        self.turn_label = ttk.Label(info_frame, text="Your turn (Red)", 
-                                   font=('Arial', 12, 'bold'))
-        self.turn_label.grid(row=0, column=0, padx=(0, 20))
-        
-        # Score
-        self.score_label = ttk.Label(info_frame, text="Score - You: 0, AI: 0", 
-                                    font=('Arial', 12))
-        self.score_label.grid(row=0, column=1, padx=(0, 20))
-        
-        # Game result
-        self.result_label = ttk.Label(info_frame, text="", 
-                                     font=('Arial', 12, 'bold'))
-        self.result_label.grid(row=0, column=2)
         
         # Initialize scores
         self.player_score = 0
@@ -146,7 +130,6 @@ class Connect4GUI:
         
         # AI turn
         self.player_turn = False
-        self.turn_label.config(text="AI thinking...")
         self.root.update()
         
         # AI move with longer delay for better UX
@@ -166,20 +149,12 @@ class Connect4GUI:
             # Check for win immediately
             if self.env._check_win(1):  # Player won
                 self.player_score += 1
-                self.result_label.config(text="You won! 🎉", foreground="green")
-                self.turn_label.config(text="Game Over")
-                self.update_score_display()
-                messagebox.showinfo("Game Over", "Congratulations! You won!")
+                messagebox.showinfo("🎉 Victory!", "Congratulations! You won!")
             elif self.env._check_win(-1):  # AI won
                 self.ai_score += 1
-                self.result_label.config(text="AI won! 🤖", foreground="red")
-                self.turn_label.config(text="Game Over")
-                self.update_score_display()
-                messagebox.showinfo("Game Over", "The AI won this round!")
+                messagebox.showinfo("🤖 Defeat!", "The AI won this round!")
             elif np.all(self.env._board != 0):  # Draw
-                self.result_label.config(text="It's a draw! 🤝", foreground="blue")
-                self.turn_label.config(text="Game Over")
-                messagebox.showinfo("Game Over", "It's a draw!")
+                messagebox.showinfo("🤝 Draw!", "It's a draw!")
             return
         
         # Switch turns manually since auto_opponent is False
@@ -189,11 +164,9 @@ class Connect4GUI:
         if is_player:
             # Player just moved, now it's AI's turn
             self.player_turn = False
-            self.turn_label.config(text="AI turn (Yellow)")
         else:
             # AI just moved, now it's player's turn
             self.player_turn = True
-            self.turn_label.config(text="Your turn (Red)")
     
     def ai_move(self):
         """Make AI move"""
@@ -259,33 +232,21 @@ class Connect4GUI:
         if self.env._check_win(1):  # Player won (player is 1)
             self.game_active = False
             self.player_score += 1
-            self.result_label.config(text="You won! 🎉", foreground="green")
-            self.turn_label.config(text="Game Over")
-            self.update_score_display()
-            messagebox.showinfo("Game Over", "Congratulations! You won!")
+            messagebox.showinfo("🎉 Victory!", "Congratulations! You won!")
             return True
             
         elif self.env._check_win(-1):  # AI won (AI is -1)
             self.game_active = False
             self.ai_score += 1
-            self.result_label.config(text="AI won! 🤖", foreground="red")
-            self.turn_label.config(text="Game Over")
-            self.update_score_display()
-            messagebox.showinfo("Game Over", "The AI won this round!")
+            messagebox.showinfo("🤖 Defeat!", "The AI won this round!")
             return True
             
         elif np.all(self.env._board != 0):  # Draw
             self.game_active = False
-            self.result_label.config(text="It's a draw! 🤝", foreground="blue")
-            self.turn_label.config(text="Game Over")
-            messagebox.showinfo("Game Over", "It's a draw!")
+            messagebox.showinfo("🤝 Draw!", "It's a draw!")
             return True
             
         return False
-    
-    def update_score_display(self):
-        """Update the score display"""
-        self.score_label.config(text=f"Score - You: {self.player_score}, AI: {self.ai_score}")
     
     def train_agent(self):
         """Train the AI agent"""
@@ -390,14 +351,12 @@ class Connect4GUI:
         
         # Update display
         self.update_board_display()
-        self.turn_label.config(text="Your turn (Red)")
-        self.result_label.config(text="")
         
         # Update status
         if self.agent:
-            self.status_label.config(text=f"New game started! Playing against {self.current_level} AI.")
+            self.status_label.config(text=f"🎲 New game started! Playing against {self.current_level} AI.")
         else:
-            self.status_label.config(text="New game started! Playing against random AI.")
+            self.status_label.config(text="🎲 New game started! Playing against random AI.")
 
 def main():
     root = tk.Tk()
