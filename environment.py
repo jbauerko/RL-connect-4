@@ -116,21 +116,6 @@ class SimpleConnect4Environment:
                     return True
         
         return False
-    
-    def render(self):
-        print("\n" + "="*29)
-        for row in range(6):
-            print("|", end=" ")
-            for col in range(7):
-                if self._board[row, col] == 0:
-                    print(".", end=" | ")
-                elif self._board[row, col] == 1:
-                    print("X", end=" | ")
-                else:
-                    print("O", end=" | ")
-            print()
-        print("="*29)
-        print("  0   1   2   3   4   5   6  ")
 
     def _create_q_network(self):
         """Create the Q-network that handles the Connect4 observation structure"""
@@ -151,24 +136,3 @@ class SimpleConnect4Environment:
             inputs=[board_input, action_mask_input],
             outputs=masked_q_values
         )
-
-
-if __name__ == "__main__":
-    env = SimpleConnect4Environment()
-    
-    # Play a few random moves
-    state = env.reset()
-    env.render()
-    
-    for i in range(5):
-        valid_actions = [i for i, valid in enumerate(state['action_mask']) if valid]
-        action = np.random.choice(valid_actions)
-        print(f"\nPlayer places in column {action}")
-        
-        time_step = env.step(action)
-        state = time_step.observation
-        env.render()
-        
-        if time_step.is_last:
-            print(f"Game ended with reward: {time_step.reward}")
-            break 
